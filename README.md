@@ -25,3 +25,9 @@ Results:
 ```
 TODO: Add benchmark results
 ```
+
+# Profiling
+To run and open qcachegrind on mac OSX:
+```bash
+rebar3 cmd profile
+```

@@ -3,6 +3,8 @@ _build
 .idea
 .eunit
 deps
+*.analysis
+*.cgrind
 *.o
 *.beam
 *.plt
