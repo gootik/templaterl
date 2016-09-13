@@ -22,10 +22,8 @@
     register_helpers/1
 ]).
 
--type token_list() :: [token() | token_expression()].
+-type token_list() :: [token()].
 -type token() :: {bitstring(), bitstring()}.
--type token_expression() :: {bitstring(), token_helper_function()}.
--type token_helper_function() :: fun((bitstring(), term()) -> bitstring()).
 
 %%====================================================================
 %% API functions
@@ -34,7 +32,23 @@
 compile(Bin, Tokens) when is_bitstring(Bin) andalso is_list(Tokens) ->
     parse_and_replace(Bin, Tokens, <<>>).
 
--spec register_helpers(list(token_expression())) -> ok.
+%% @doc If custom helper functions are needed they have to be registered
+%%      before calling compile. This function creates a new inline
+%%      module with the given expression defintions. This makes the
+%%      calls faster.
+%%
+%%      Helper function definition is in the form of a string. For example,
+%%      if you want a helper that concatenates the token name and value
+%%      you would write something like:
+%%
+%%      DummyHelper = "dummy_helper(Token, Value) -> <<Token/binary, $:, Value/binary>>."
+%%
+%%      Usage:
+%%      templaterl:register_helpers([DummyHelper]),
+%%      templaterl:compile(<<"test {{dummy_helper my_token}}">>, [{<<"my_token">>, value}]).
+%%        => <<"test my_token:value">>
+%% @end
+-spec register_helpers(list(string())) -> ok.
 register_helpers(HelperList) ->
     generate_helper_module(HelperList).
 
@@ -58,7 +72,7 @@ parse_and_replace2(<<>>, _, _) ->
 parse_and_replace2(Bin, Tokens, Acc) ->
     case binary:split(Bin, <<"}}}">>) of
         [Token, Rest] ->
-            Value = convert_to_binary(apply_token_funs(Token, Tokens)),
+            Value = apply_token_funs(Token, Tokens),
             parse_and_replace(Rest, Tokens, <<Acc/binary, Value/binary>>);
         [_Rest] ->
             bad_tag
@@ -72,7 +86,7 @@ apply_token_funs(TokenBin, Tokens) ->
             Value;
         FuncList ->
             [Token | Funs] = lists:reverse(FuncList),
-            {_, Value} = lists:keyfind(Token, 1, Tokens),
+            {_, Value} = convert_to_binary(lists:keyfind(Token, 1, Tokens)),
             lists:foldl(
                 fun(Current, Prev) ->
                     apply(templaterl_helpers, binary_to_existing_atom(Current, utf8), [Token, Prev])

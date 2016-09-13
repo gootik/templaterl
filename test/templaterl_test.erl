@@ -60,6 +60,12 @@ readme_test2() ->
     Result = templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>}]),
     ?assertEqual(<<"I have a NISSAN GTR.">>, Result).
 
+documentation_example_test() ->
+    DummyHelper = "dummy_helper(Token, Value) -> <<Token/binary, $:, Value/binary>>.",
+    templaterl:register_helpers([DummyHelper]),
+    Result = templaterl:compile(<<"test {{{dummy_helper my_token}}}">>, [{<<"my_token">>, value}]),
+    ?assertEqual(<<"test my_token:value">>, Result).
+
 non_binary_values_test() ->
     Result = templaterl:compile(<<"replace {{{number}}} {{{string}}} {{{atom}}} {{{boolean}}} {{{binary}}}">>,
                                 [{<<"number">>, 2},
