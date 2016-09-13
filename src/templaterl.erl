@@ -25,9 +25,26 @@
 %% API functions
 %%====================================================================
 -spec compile(bitstring(), token_map()) -> bitstring().
-compile(_Bin, _Tokens) ->
-    ok.
+compile(Bin, Tokens) when is_bitstring(Bin) andalso is_map(Tokens) ->
+    parse_and_replace(Bin, Tokens, <<>>).
 
 %%====================================================================
 %% Internal functions
 %%====================================================================
+parse_and_replace(<<"{{{", Bin/binary>>, Tokens, Acc) ->
+    parse_and_replace2(Bin, Tokens, <<>>, Acc);
+
+parse_and_replace(<<Char:1/binary, Bin/binary>>, Tokens, Acc) ->
+    parse_and_replace(Bin, Tokens, <<Acc/binary, Char/binary>>);
+
+parse_and_replace(<<>>, _, Acc) ->
+    Acc.
+
+parse_and_replace2(<<"}}}", Bin/binary>>, Tokens, Token, Acc) ->
+    Value = maps:get(Token, Tokens),
+    parse_and_replace(Bin, Tokens, <<Acc/binary, Value/binary>>);
+
+parse_and_replace2(<<Char:1/binary, Bin/binary>>, Tokens, Token, Acc) ->
+    parse_and_replace2(Bin, Tokens, <<Token/binary, Char/binary>>, Acc);
+parse_and_replace2(<<>>, _, _, _) ->
+    bad_tag.
