@@ -19,12 +19,12 @@
     compile/2
 ]).
 
--type token_map() :: #{bitstring() => bitstring()}.
+-type token_list() :: [{bitstring(), bitstring()}].
 
 %%====================================================================
 %% API functions
 %%====================================================================
--spec compile(bitstring(), token_map()) -> bitstring().
+-spec compile(bitstring(), token_list()) -> bitstring().
 compile(Bin, Tokens) when is_bitstring(Bin) andalso is_list(Tokens) ->
     parse_and_replace(Bin, Tokens, <<>>).
 
