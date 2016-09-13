@@ -15,6 +15,8 @@
 %%--------------------------------------------------------------------
 -module(templaterl).
 
+-compile(inline).
+
 -export([
     compile/2
 ]).
@@ -56,7 +58,7 @@ parse_and_replace2(Bin, Tokens, Acc) ->
 
 apply_token_funs(TokenBin, Tokens) ->
     CleanToken = binary:replace(TokenBin, [<<"(">>, <<")">>], <<"">>, [global]),
-    case binary:split(CleanToken, <<" ">>, [global, trim_all]) of
+    case binary:split(CleanToken, <<" ">>, [global, trim]) of
         [Token] ->
             {_, Value} = lists:keyfind(Token, 1, Tokens),
             Value;
