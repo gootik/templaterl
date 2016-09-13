@@ -52,7 +52,7 @@ parse_and_replace2(<<>>, _, _) ->
 parse_and_replace2(Bin, Tokens, Acc) ->
     case binary:split(Bin, <<"}}}">>) of
         [Token, Rest] ->
-            Value = apply_token_funs(Token, Tokens),
+            Value = convert_to_binary(apply_token_funs(Token, Tokens)),
             parse_and_replace(Rest, Tokens, <<Acc/binary, Value/binary>>);
         [_Rest] ->
             bad_tag
@@ -75,3 +75,11 @@ apply_token_funs(TokenBin, Tokens) ->
                 Value,
                 Funs)
     end.
+
+convert_to_binary(Term) when is_binary(Term) -> Term;
+convert_to_binary(Term) when is_integer(Term) -> integer_to_binary(Term);
+convert_to_binary(Term) when is_float(Term) -> float_to_binary(Term);
+convert_to_binary(Term) when is_list(Term) -> list_to_binary(Term);
+convert_to_binary(true) -> <<"true">>;
+convert_to_binary(false) -> <<"false">>;
+convert_to_binary(Term) when is_atom(Term) -> atom_to_binary(Term, utf8).

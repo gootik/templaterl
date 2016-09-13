@@ -52,7 +52,6 @@ nested_function_token_replacement_test() ->
     ]),
     ?assertEqual(<<"replace TEST">>, Result).
 
-
 readme_test() ->
     Result = templaterl:compile(<<"I have a {{{car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>}]),
     ?assertEqual(<<"I have a Nissan GTR.">>, Result).
@@ -62,3 +61,13 @@ readme_test2() ->
     Result = templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>},
                                                                    {<<"uppercase">>, Uppercase}]),
     ?assertEqual(<<"I have a NISSAN GTR.">>, Result).
+
+non_binary_values_test() ->
+    Result = templaterl:compile(<<"replace {{{number}}} {{{string}}} {{{atom}}} {{{boolean}}} {{{binary}}}">>,
+                                [{<<"number">>, 2},
+                                 {<<"string">>, "string"},
+                                 {<<"atom">>, atom},
+                                 {<<"boolean">>, true},
+                                 {<<"binary">>, <<"binary">>}]),
+
+    ?assertEqual(<<"replace 2 string atom true binary">>, Result).
