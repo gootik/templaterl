@@ -63,11 +63,12 @@ readme_test2() ->
     ?assertEqual(<<"I have a NISSAN GTR.">>, Result).
 
 non_binary_values_test() ->
-    Result = templaterl:compile(<<"replace {{{number}}} {{{string}}} {{{atom}}} {{{boolean}}} {{{binary}}}">>,
+    Result = templaterl:compile(<<"replace {{{number}}} {{{string}}} {{{atom}}} {{{float}}} {{{boolean}}} {{{binary}}}">>,
                                 [{<<"number">>, 2},
                                  {<<"string">>, "string"},
                                  {<<"atom">>, atom},
+                                 {<<"float">>, 0.5},
                                  {<<"boolean">>, true},
                                  {<<"binary">>, <<"binary">>}]),
 
-    ?assertEqual(<<"replace 2 string atom true binary">>, Result).
+    ?assertEqual(<<"replace 2 string atom 0.5 true binary">>, Result).
