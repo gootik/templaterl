@@ -72,7 +72,7 @@ parse_and_replace2(<<>>, _, _) ->
 parse_and_replace2(Bin, Tokens, Acc) ->
     case binary:split(Bin, <<"}}}">>) of
         [Token, Rest] ->
-            Value = apply_token_funs(Token, Tokens),
+            Value = convert_to_binary(apply_token_funs(Token, Tokens)),
             parse_and_replace(Rest, Tokens, <<Acc/binary, Value/binary>>);
         [_Rest] ->
             bad_tag
@@ -86,12 +86,12 @@ apply_token_funs(TokenBin, Tokens) ->
             Value;
         FuncList ->
             [Token | Funs] = lists:reverse(FuncList),
-            {_, Value} = convert_to_binary(lists:keyfind(Token, 1, Tokens)),
+            {_, Value} = lists:keyfind(Token, 1, Tokens),
             lists:foldl(
                 fun(Current, Prev) ->
                     apply(templaterl_helpers, binary_to_existing_atom(Current, utf8), [Token, Prev])
                 end,
-                Value,
+                convert_to_binary(Value),
                 Funs)
     end.
 
