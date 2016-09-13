@@ -78,7 +78,7 @@ apply_token_funs(TokenBin, Tokens) ->
 
 convert_to_binary(Term) when is_binary(Term) -> Term;
 convert_to_binary(Term) when is_integer(Term) -> integer_to_binary(Term);
-convert_to_binary(Term) when is_float(Term) -> float_to_binary(Term);
+convert_to_binary(Term) when is_float(Term) -> list_to_binary(io_lib:format("~p", [Term]));
 convert_to_binary(Term) when is_list(Term) -> list_to_binary(Term);
 convert_to_binary(true) -> <<"true">>;
 convert_to_binary(false) -> <<"false">>;
