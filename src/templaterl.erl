@@ -15,6 +15,8 @@
 %%--------------------------------------------------------------------
 -module(templaterl).
 
+-compile(inline).
+
 -export([
     compile/2
 ]).
@@ -48,8 +50,26 @@ parse_and_replace2(<<>>, _, _) ->
 parse_and_replace2(Bin, Tokens, Acc) ->
     case binary:split(Bin, <<"}}}">>) of
         [Token, Rest] ->
-            {_, Value} = lists:keyfind(Token, 1, Tokens),
+            Value = apply_token_funs(Token, Tokens),
             parse_and_replace(Rest, Tokens, <<Acc/binary, Value/binary>>);
         [_Rest] ->
             bad_tag
+    end.
+
+apply_token_funs(TokenBin, Tokens) ->
+    CleanToken = binary:replace(TokenBin, [<<"(">>, <<")">>], <<"">>, [global]),
+    case binary:split(CleanToken, <<" ">>, [global, trim]) of
+        [Token] ->
+            {_, Value} = lists:keyfind(Token, 1, Tokens),
+            Value;
+        FuncList ->
+            [Token | Funs] = lists:reverse(FuncList),
+            {_, Value} = lists:keyfind(Token, 1, Tokens),
+            lists:foldl(
+                fun(Current, Prev) ->
+                    {_, Fun} = lists:keyfind(Current, 1, Tokens),
+                    Fun(Token, Prev)
+                end,
+                Value,
+                Funs)
     end.
