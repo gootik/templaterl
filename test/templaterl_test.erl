@@ -24,7 +24,7 @@ incomplete_last_token_replacement_test() ->
 
 function_token_replacement_test() ->
     Uppercase = "uppercase(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>>.",
-    templaterl:register_helpers([{uppercase, Uppercase}]),
+    templaterl:register_helpers([Uppercase]),
 
     Result = templaterl:compile(<<"replace {{{uppercase this}}}">>, [
         {<<"this">>, <<"test">>}]),
@@ -33,9 +33,7 @@ function_token_replacement_test() ->
 multi_function_token_replacement_test() ->
     Uppercase = "uppercase(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>>.",
     Lowercase = "lowercase(_Token, Value) -> <<<<(string:to_lower(X))>> || <<X>> <= Value>>.",
-
-    templaterl:register_helpers([{uppercase, Uppercase},
-                                 {lowercase, Lowercase}]),
+    templaterl:register_helpers([Uppercase, Lowercase]),
 
     Result = templaterl:compile(<<"replace {{{uppercase this}}} and {{{lowercase that}}}">>, [
         {<<"this">>, <<"test">>},
@@ -45,9 +43,7 @@ multi_function_token_replacement_test() ->
 nested_function_token_replacement_test() ->
     Uppercase = "uppercase(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>>.",
     Lowercase = "lowercase(_Token, Value) -> <<<<(string:to_lower(X))>> || <<X>> <= Value>>.",
-
-    templaterl:register_helpers([{uppercase, Uppercase},
-                                 {lowercase, Lowercase}]),
+    templaterl:register_helpers([Uppercase, Lowercase]),
 
     Result = templaterl:compile(<<"replace {{{uppercase (lowercase (uppercase this))}}}">>, [{<<"this">>, <<"test">>}]),
     ?assertEqual(<<"replace TEST">>, Result).
@@ -58,7 +54,7 @@ readme_test() ->
 
 readme_test2() ->
     Uppercase = "uppercase(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>>.",
-    templaterl:register_helpers([{uppercase, Uppercase}]),
+    templaterl:register_helpers([Uppercase]),
 
     Uppercase = fun(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
     Result = templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>}]),

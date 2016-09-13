@@ -4,10 +4,10 @@
 %%      on the token values.
 %%
 %%      For example you can do the following:
-%%          Uppercase = fun(_Token, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >> end.
+%%          Uppercase = "uppercase(_Token, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >>.",
+%%          templaterl:register_helpers([Uppercase]),
 %%          templaterl:compile(<<"This bitstring has a {{{tag}}} that can be uppercase {{{uppercase tag}}} too.">>,
-%%                             [{<<"tag">>, <<"token">>},
-%%                              {<<"uppercase">>, Uppercase}]).
+%%                             [{<<"tag">>, <<"token">>}]).
 %%              => <<"This bitstring has a token that can be uppercase TOKEN too.">>
 %%
 %%
@@ -25,7 +25,7 @@
 -type token_list() :: [token() | token_expression()].
 -type token() :: {bitstring(), bitstring()}.
 -type token_expression() :: {bitstring(), token_helper_function()}.
--type token_helper_function() :: fun((bitstring(), bitstring()) -> bitstring()).
+-type token_helper_function() :: fun((bitstring(), term()) -> bitstring()).
 
 %%====================================================================
 %% API functions
@@ -36,27 +36,7 @@ compile(Bin, Tokens) when is_bitstring(Bin) andalso is_list(Tokens) ->
 
 -spec register_helpers(list(token_expression())) -> ok.
 register_helpers(HelperList) ->
-    Forms = helper_forms(HelperList),
-    {ok, Module, Bin} = compile:forms(Forms, [debug_info, inline]),
-    code:purge(Module),
-    Filename = atom_to_list(Module) ++ ".erl",
-    {module, Module} = code:load_binary(Module, Filename, Bin),
-    ok.
-
-helper_forms(HelperList) ->
-    ModuleDefinition = erl_syntax:attribute(erl_syntax:atom(module), [erl_syntax:atom(templaterl_helpers)]),
-    ExportsList = [erl_syntax:arity_qualifier(erl_syntax:atom(HelperName), erl_syntax:integer(2)) || HelperName <- proplists:get_keys(HelperList)],
-    Export = erl_syntax:attribute(erl_syntax:atom(export), [erl_syntax:list(ExportsList)]),
-
-    Functions = [helper_function_syntax(HelperName, HelperBody) || {HelperName, HelperBody} <- HelperList],
-
-    Module = [ModuleDefinition, Export] ++ Functions,
-    [erl_syntax:revert(X) || X <- Module].
-
-helper_function_syntax(_HelperName, HelperBody) ->
-    {ok, Ts, _} = erl_scan:string(HelperBody),
-    {ok, Form} = erl_parse:parse_form(Ts),
-    Form.
+    generate_helper_module(HelperList).
 
 %%====================================================================
 %% Internal functions
@@ -108,3 +88,29 @@ convert_to_binary(Term) when is_list(Term) -> list_to_binary(Term);
 convert_to_binary(true) -> <<"true">>;
 convert_to_binary(false) -> <<"false">>;
 convert_to_binary(Term) when is_atom(Term) -> atom_to_binary(Term, utf8).
+
+generate_helper_module(HelperList) ->
+    Forms = helper_forms(HelperList),
+    {ok, Module, Bin} = compile:forms(Forms, [debug_info, inline]),
+    code:purge(Module),
+    Filename = atom_to_list(Module) ++ ".erl",
+    {module, Module} = code:load_binary(Module, Filename, Bin),
+    ok.
+
+helper_forms(HelperList) ->
+    ModuleDefinition = erl_syntax:attribute(erl_syntax:atom(module), [erl_syntax:atom(templaterl_helpers)]),
+    Functions = [helper_function_syntax(HelperBody) || HelperBody <- HelperList],
+
+    ExportsList = [erl_syntax:arity_qualifier(erl_syntax:atom(HelperName), erl_syntax:integer(2)) || {HelperName, _} <- Functions],
+    Exports = erl_syntax:attribute(erl_syntax:atom(export), [erl_syntax:list(ExportsList)]),
+
+    FunctionForms = [HelperFuncForm || {_, HelperFuncForm} <- Functions],
+
+    Module = [ModuleDefinition, Exports] ++ FunctionForms,
+    [erl_syntax:revert(X) || X <- Module].
+
+helper_function_syntax(HelperBody) ->
+    {ok, Ts, _} = erl_scan:string(HelperBody),
+    {ok, Form} = erl_parse:parse_form(Ts),
+    Fun = element(3, Form),
+    {Fun, Form}.
