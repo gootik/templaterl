@@ -23,7 +23,7 @@ incomplete_last_token_replacement_test() ->
     ?assertEqual(bad_tag, Result).
 
 function_token_replacement_test() ->
-    Uppercase = fun(_, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >> end,
+    Uppercase = fun(_, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
     Result = templaterl:compile(<<"replace {{{uppercase this}}}">>, [
         {<<"this">>, <<"test">>},
         {<<"uppercase">>, Uppercase}
@@ -31,8 +31,8 @@ function_token_replacement_test() ->
     ?assertEqual(<<"replace TEST">>, Result).
 
 multi_function_token_replacement_test() ->
-    Uppercase = fun(_, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >> end,
-    Lowercase = fun(_, Value) -> << <<(string:to_lower(X))>> || <<X>> <= Value >> end,
+    Uppercase = fun(_, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
+    Lowercase = fun(_, Value) -> <<<<(string:to_lower(X))>> || <<X>> <= Value>> end,
     Result = templaterl:compile(<<"replace {{{uppercase this}}} and {{{lowercase that}}}">>, [
         {<<"this">>, <<"test">>},
         {<<"that">>, <<"TEsT2">>},
@@ -43,11 +43,22 @@ multi_function_token_replacement_test() ->
 
 
 nested_function_token_replacement_test() ->
-    Uppercase = fun(_, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >> end,
-    Lowercase = fun(_, Value) -> << <<(string:to_lower(X))>> || <<X>> <= Value >> end,
+    Uppercase = fun(_, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
+    Lowercase = fun(_, Value) -> <<<<(string:to_lower(X))>> || <<X>> <= Value>> end,
     Result = templaterl:compile(<<"replace {{{uppercase (lowercase (uppercase this))}}}">>, [
         {<<"this">>, <<"test">>},
         {<<"uppercase">>, Uppercase},
         {<<"lowercase">>, Lowercase}
     ]),
     ?assertEqual(<<"replace TEST">>, Result).
+
+
+readme_test() ->
+    Result = templaterl:compile(<<"I have a {{{car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>}]),
+    ?assertEqual(<<"I have a Nissan GTR.">>, Result).
+
+readme_test2() ->
+    Uppercase = fun(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
+    Result = templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>},
+                                                                   {<<"uppercase">>, Uppercase}]),
+    ?assertEqual(<<"I have a NISSAN GTR.">>, Result).
