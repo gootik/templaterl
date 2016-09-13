@@ -1,6 +1,6 @@
 -module(templaterl_test).
 
--compile(export_all).
+-compile([export_all, inline]).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -23,33 +23,29 @@ incomplete_last_token_replacement_test() ->
     ?assertEqual(bad_tag, Result).
 
 function_token_replacement_test() ->
-    Uppercase = fun(_, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
+    Uppercase = "uppercase(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>>.",
+    templaterl:register_helpers([Uppercase]),
+
     Result = templaterl:compile(<<"replace {{{uppercase this}}}">>, [
-        {<<"this">>, <<"test">>},
-        {<<"uppercase">>, Uppercase}
-    ]),
+        {<<"this">>, <<"test">>}]),
     ?assertEqual(<<"replace TEST">>, Result).
 
 multi_function_token_replacement_test() ->
-    Uppercase = fun(_, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
-    Lowercase = fun(_, Value) -> <<<<(string:to_lower(X))>> || <<X>> <= Value>> end,
+    Uppercase = "uppercase(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>>.",
+    Lowercase = "lowercase(_Token, Value) -> <<<<(string:to_lower(X))>> || <<X>> <= Value>>.",
+    templaterl:register_helpers([Uppercase, Lowercase]),
+
     Result = templaterl:compile(<<"replace {{{uppercase this}}} and {{{lowercase that}}}">>, [
         {<<"this">>, <<"test">>},
-        {<<"that">>, <<"TEsT2">>},
-        {<<"uppercase">>, Uppercase},
-        {<<"lowercase">>, Lowercase}
-    ]),
+        {<<"that">>, <<"TEsT2">>}]),
     ?assertEqual(<<"replace TEST and test2">>, Result).
 
-
 nested_function_token_replacement_test() ->
-    Uppercase = fun(_, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
-    Lowercase = fun(_, Value) -> <<<<(string:to_lower(X))>> || <<X>> <= Value>> end,
-    Result = templaterl:compile(<<"replace {{{uppercase (lowercase (uppercase this))}}}">>, [
-        {<<"this">>, <<"test">>},
-        {<<"uppercase">>, Uppercase},
-        {<<"lowercase">>, Lowercase}
-    ]),
+    Uppercase = "uppercase(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>>.",
+    Lowercase = "lowercase(_Token, Value) -> <<<<(string:to_lower(X))>> || <<X>> <= Value>>.",
+    templaterl:register_helpers([Uppercase, Lowercase]),
+
+    Result = templaterl:compile(<<"replace {{{uppercase (lowercase (uppercase this))}}}">>, [{<<"this">>, <<"test">>}]),
     ?assertEqual(<<"replace TEST">>, Result).
 
 readme_test() ->
@@ -57,10 +53,18 @@ readme_test() ->
     ?assertEqual(<<"I have a Nissan GTR.">>, Result).
 
 readme_test2() ->
+    Uppercase = "uppercase(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>>.",
+    templaterl:register_helpers([Uppercase]),
+
     Uppercase = fun(_Token, Value) -> <<<<(string:to_upper(X))>> || <<X>> <= Value>> end,
-    Result = templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>},
-                                                                   {<<"uppercase">>, Uppercase}]),
+    Result = templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>}]),
     ?assertEqual(<<"I have a NISSAN GTR.">>, Result).
+
+documentation_example_test() ->
+    DummyHelper = "dummy_helper(Token, Value) -> <<Token/binary, $:, Value/binary>>.",
+    templaterl:register_helpers([DummyHelper]),
+    Result = templaterl:compile(<<"test {{{dummy_helper my_token}}}">>, [{<<"my_token">>, value}]),
+    ?assertEqual(<<"test my_token:value">>, Result).
 
 non_binary_values_test() ->
     Result = templaterl:compile(<<"replace {{{number}}} {{{string}}} {{{atom}}} {{{float}}} {{{boolean}}} {{{binary}}}">>,

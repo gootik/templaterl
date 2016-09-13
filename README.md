@@ -12,9 +12,9 @@ templaterl:compile(<<"I have a {{{car_model}}}.">>, [{<<"car_model">>, <<"Nissan
 
 Replacement with expressions:
 ```erlang
-Uppercase = fun(_Token, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >> end.
-templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>},
-                                                               {<<"uppercase">>, Uppercase}]).
+Uppercase = "uppercase(_Token, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >>.",
+templaterl:register_helpers([Uppercase]),
+templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>}]).
 <<"I have a NISSAN GTR.">>
 ```
 
