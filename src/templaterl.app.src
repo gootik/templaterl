@@ -3,9 +3,9 @@
     {description, "An extremly fast and simple templating library in Erlang"},
     {env, []},
     {licenses, ["MIT"]},
-    {links, []},
+    {links, [{"Github", "https://github.com/shezarkhani/templaterl"}]},
     {maintainers, ["Sasan Hezarkhani", "Ahmad Mokhtar", "Matheus Mendes"]},
     {modules, [templaterl]},
     {registered, []},
-    {vsn, "0.1.0"}
+    {vsn, "0.1.1"}
 ]}.
