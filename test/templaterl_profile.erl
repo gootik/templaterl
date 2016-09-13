@@ -21,14 +21,14 @@ run() ->
                                  "amet {{{pellentesque}}}. Sed et turpis vitae dui ultrices pellentesque nec ut justo.",
                                  "Nullam vitae sem congue, molestie neque a, hendrerit eros. Pellentesque",
                                  "{{{sollicitudin}}} eu lorem a malesuada">>,
-                               #{<<"vestibulum">> => <<"REPLACE1">>,
-                                 <<"convallis">> => <<"REPLACE2">>,
-                                 <<"feugiat">> => <<"REPLACE3">>,
-                                 <<"lorem">> => <<"REPLACE4">>,
-                                 <<"efficitur">> => <<"REPLACE5">>,
-                                 <<"congue">> => <<"REPLACE6">>,
-                                 <<"pellentesque">> => <<"REPLACE7">>,
-                                 <<"sollicitudin">> => <<"REPLACE8">>})
+                               [{<<"vestibulum">>, <<"REPLACE1">>},
+                                {<<"convallis">>, <<"REPLACE2">>},
+                                {<<"feugiat">>, <<"REPLACE3">>},
+                                {<<"lorem">>, <<"REPLACE4">>},
+                                {<<"efficitur">>, <<"REPLACE5">>},
+                                {<<"congue">>, <<"REPLACE6">>},
+                                {<<"pellentesque">>, <<"REPLACE7">>},
+                                {<<"sollicitudin">>, <<"REPLACE8">>}])
         end, 1000, 20),
 
     fprofx:trace(stop),

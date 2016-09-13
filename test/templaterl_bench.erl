@@ -6,8 +6,8 @@ run() ->
     SmallTiming = timing:function(
         fun() ->
             templaterl:compile(<<"{{{this}}} is a small text that has multiple {{{replacements}}}">>,
-                               #{<<"this">> => <<"REPLACE1">>,
-                                 <<"replacements">> => <<"REPLACE2">>})
+                               [{<<"this">>, <<"REPLACE1">>},
+                                {<<"replacements">>, <<"REPLACE2">>}])
         end, 100000, 20),
 
     LongTiming = timing:function(
@@ -24,14 +24,14 @@ run() ->
                                  "amet {{{pellentesque}}}. Sed et turpis vitae dui ultrices pellentesque nec ut justo.",
                                  "Nullam vitae sem congue, molestie neque a, hendrerit eros. Pellentesque",
                                  "{{{sollicitudin}}} eu lorem a malesuada">>,
-                               #{<<"vestibulum">> => <<"REPLACE1">>,
-                                 <<"convallis">> => <<"REPLACE2">>,
-                                 <<"feugiat">> => <<"REPLACE3">>,
-                                 <<"lorem">> => <<"REPLACE4">>,
-                                 <<"efficitur">> => <<"REPLACE5">>,
-                                 <<"congue">> => <<"REPLACE6">>,
-                                 <<"pellentesque">> => <<"REPLACE7">>,
-                                 <<"sollicitudin">> => <<"REPLACE8">>})
+                               [{<<"vestibulum">>, <<"REPLACE1">>},
+                                {<<"convallis">>, <<"REPLACE2">>},
+                                {<<"feugiat">>, <<"REPLACE3">>},
+                                {<<"lorem">>, <<"REPLACE4">>},
+                                {<<"efficitur">>, <<"REPLACE5">>},
+                                {<<"congue">>, <<"REPLACE6">>},
+                                {<<"pellentesque">>, <<"REPLACE7">>},
+                                {<<"sollicitudin">>, <<"REPLACE8">>}])
         end, 100000, 20),
 
     io:format("Small text~n"),
