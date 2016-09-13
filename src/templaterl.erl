@@ -5,8 +5,11 @@
 %%
 %%      For example you can do the following:
 %%
-%%      templaterl:compile(<<"This bitstring has a {{{tag}}} that can be uppercase {{{uppercase tag}}} too.">>, #{<<"tag">> => <<"token">>}).
-%%          => This bitstring has a token that can be uppercase TOKEN too.
+%%      Uppercase = fun(Token, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >>.
+%%      templaterl:compile(<<"This bitstring has a {{{tag}}} that can be uppercase {{{uppercase tag}}} too.">>,
+%%                         #{<<"tag">> => <<"token">>},
+%%                         #{<<"uppercase">> => Uppercase}).
+%%          => <<"This bitstring has a token that can be uppercase TOKEN too.">>
 %%
 %% @end
 %%--------------------------------------------------------------------
