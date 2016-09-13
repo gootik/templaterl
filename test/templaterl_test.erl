@@ -40,3 +40,14 @@ multi_function_token_replacement_test() ->
         {<<"lowercase">>, Lowercase}
     ]),
     ?assertEqual(<<"replace TEST and test2">>, Result).
+
+
+nested_function_token_replacement_test() ->
+    Uppercase = fun(_, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >> end,
+    Lowercase = fun(_, Value) -> << <<(string:to_lower(X))>> || <<X>> <= Value >> end,
+    Result = templaterl:compile(<<"replace {{{uppercase (lowercase (uppercase this))}}}">>, [
+        {<<"this">>, <<"test">>},
+        {<<"uppercase">>, Uppercase},
+        {<<"lowercase">>, Lowercase}
+    ]),
+    ?assertEqual(<<"replace TEST">>, Result).
