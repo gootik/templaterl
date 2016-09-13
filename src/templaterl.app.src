@@ -1,15 +1,11 @@
-{application, templaterl,
- [{description, "An OTP library"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, []},
-
-  {maintainers, []},
-  {licenses, []},
-  {links, []}
- ]}.
+{application, templaterl, [
+    {applications, [kernel, stdlib]},
+    {description, "An extremly fast and simple templating library in Erlang"},
+    {env, []},
+    {licenses, ["MIT"]},
+    {links, []},
+    {maintainers, ["Sasan Hezarkhani", "Ahmad Mokhtar", "Matheus Mendes"]},
+    {modules, [templaterl]},
+    {registered, []},
+    {vsn, "0.1.0"}
+]}.
