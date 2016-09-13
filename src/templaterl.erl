@@ -36,34 +36,27 @@ compile(Bin, Tokens) when is_bitstring(Bin) andalso is_list(Tokens) ->
 
 -spec register_helpers(list(token_expression())) -> ok.
 register_helpers(HelperList) ->
-    try
-        Forms = helper_forms(HelperList),
-        io:format(user, "~p~n", [Forms]),
-        {ok, Module, Bin} = compile:forms(Forms, [debug_info]),
-        code:purge(Module),
-        Filename = atom_to_list(Module) ++ ".erl",
-        {module, Module} = code:load_binary(Module, Filename, Bin),
-        ok
-    catch Error:Reason ->
-        io:format(user, "~p:~p:~p ~n", [Error, Reason, erlang:get_stacktrace()])
-    end.
+    Forms = helper_forms(HelperList),
+    {ok, Module, Bin} = compile:forms(Forms, [debug_info, inline]),
+    code:purge(Module),
+    Filename = atom_to_list(Module) ++ ".erl",
+    {module, Module} = code:load_binary(Module, Filename, Bin),
+    ok.
 
 helper_forms(HelperList) ->
     ModuleDefinition = erl_syntax:attribute(erl_syntax:atom(module), [erl_syntax:atom(templaterl_helpers)]),
     ExportsList = [erl_syntax:arity_qualifier(erl_syntax:atom(HelperName), erl_syntax:integer(2)) || HelperName <- proplists:get_keys(HelperList)],
     Export = erl_syntax:attribute(erl_syntax:atom(export), [erl_syntax:list(ExportsList)]),
 
-    Functions = [erl_syntax:function(erl_syntax:atom(HelperName), helper_function_clauses(HelperName, HelperBody)) || {HelperName, HelperBody} <- HelperList],
+    Functions = [helper_function_syntax(HelperName, HelperBody) || {HelperName, HelperBody} <- HelperList],
 
     Module = [ModuleDefinition, Export] ++ Functions,
     [erl_syntax:revert(X) || X <- Module].
 
-helper_function_clauses(_HelperName, HelperBody) ->
-    io:format(user, "~p~n", [HelperBody]),
-    io:format(user, "~p~n", [erlang:fun_info(HelperBody)]),
-    {env, [{_,_,_,Forms}]} = erlang:fun_info(HelperBody, env),
-
-    Forms.
+helper_function_syntax(_HelperName, HelperBody) ->
+    {ok, Ts, _} = erl_scan:string(HelperBody),
+    {ok, Form} = erl_parse:parse_form(Ts),
+    Form.
 
 %%====================================================================
 %% Internal functions
