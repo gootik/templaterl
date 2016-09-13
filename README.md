@@ -6,7 +6,16 @@ Simple templating with customizable expressions
 # Usage
 Simple replacement usage:
 ```erlang
-templaterl:compile(<<"I have a {{{car_model}}}.">>, #{<<"car_model">> => <<"Nissan GTR">>})
+templaterl:compile(<<"I have a {{{car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>}]).
+<<"I have a Nissan GTR.">>
+```
+
+Replacement with expressions:
+```erlang
+Uppercase = fun(_Token, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >> end.
+templaterl:compile(<<"I have a {{{uppercase car_model}}}.">>, [{<<"car_model">>, <<"Nissan GTR">>},
+                                                               {<<"uppercase">>, Uppercase}]).
+<<"I have a NISSAN GTR.">>
 ```
 
 # Tests

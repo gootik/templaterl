@@ -4,12 +4,12 @@
 %%      on the token values.
 %%
 %%      For example you can do the following:
+%%          Uppercase = fun(_Token, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >> end.
+%%          templaterl:compile(<<"This bitstring has a {{{tag}}} that can be uppercase {{{uppercase tag}}} too.">>,
+%%                             [{<<"tag">>, <<"token">>},
+%%                              {<<"uppercase">>, Uppercase}]).
+%%              => <<"This bitstring has a token that can be uppercase TOKEN too.">>
 %%
-%%      Uppercase = fun(Token, Value) -> << <<(string:to_upper(X))>> || <<X>> <= Value >>.
-%%      templaterl:compile(<<"This bitstring has a {{{tag}}} that can be uppercase {{{uppercase tag}}} too.">>,
-%%                         #{<<"tag">> => <<"token">>},
-%%                         #{<<"uppercase">> => Uppercase}).
-%%          => <<"This bitstring has a token that can be uppercase TOKEN too.">>
 %%
 %% @end
 %%--------------------------------------------------------------------
@@ -21,7 +21,9 @@
     compile/2
 ]).
 
--type token_list() :: [{bitstring(), bitstring()}].
+-type token_list() :: [token() | token_expression()].
+-type token() :: {bitstring(), bitstring()}.
+-type token_expression() :: {bitstring(), function()}.
 
 %%====================================================================
 %% API functions
