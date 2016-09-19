@@ -56,14 +56,14 @@ register_helpers(HelperList) ->
 %% Internal functions
 %%====================================================================
 parse_and_replace(<<>>, _, Acc) ->
-    Acc;
+    erlang:iolist_to_binary(Acc);
 
 parse_and_replace(Bin, Tokens, Acc) ->
     case binary:split(Bin, <<"{{{">>) of
         [Before, After] ->
-            parse_and_replace2(After, Tokens, <<Acc/binary, Before/binary>>);
+            parse_and_replace2(After, Tokens, [Acc, Before]);
         [Rest] ->
-            <<Acc/binary, Rest/binary>>
+            parse_and_replace(<<>>, Tokens, [Acc, Rest])
     end.
 
 parse_and_replace2(<<>>, _, _) ->
@@ -73,19 +73,18 @@ parse_and_replace2(Bin, Tokens, Acc) ->
     case binary:split(Bin, <<"}}}">>) of
         [Token, Rest] ->
             Value = convert_to_binary(apply_token_funs(Token, Tokens)),
-            parse_and_replace(Rest, Tokens, <<Acc/binary, Value/binary>>);
+            parse_and_replace(Rest, Tokens, [Acc, Value]);
         [_Rest] ->
             bad_tag
     end.
 
 apply_token_funs(TokenBin, Tokens) ->
-    CleanToken = binary:replace(TokenBin, [<<"(">>, <<")">>], <<"">>, [global]),
-    case binary:split(CleanToken, <<" ">>, [global, trim]) of
+    case binary:split(TokenBin, <<" ">>, [global, trim]) of
         [Token] ->
             {_, Value} = lists:keyfind(Token, 1, Tokens),
             Value;
         FuncList ->
-            [Token | Funs] = lists:reverse(FuncList),
+            [Token | Funs] = lists:map(fun(E) -> binary:replace(E, [<<"(">>, <<")">>], <<"">>, [global]) end, lists:reverse(FuncList)),
             {_, Value} = lists:keyfind(Token, 1, Tokens),
             lists:foldl(
                 fun(Current, Prev) ->
