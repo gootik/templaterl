@@ -25,6 +25,8 @@
 -type token_list() :: [token()].
 -type token() :: {bitstring(), bitstring()}.
 
+-define(TEMPLATERL_HELPER_MODULE, tempalterl_helpers).
+
 %%====================================================================
 %% API functions
 %%====================================================================
@@ -34,7 +36,7 @@ compile(Bin, Tokens) when is_bitstring(Bin) andalso is_list(Tokens) ->
 
 %% @doc If custom helper functions are needed they have to be registered
 %%      before calling compile. This function creates a new inline
-%%      module with the given expression defintions. This makes the
+%%      module with the given expression definitions. This makes the
 %%      calls faster.
 %%
 %%      Helper function definition is in the form of a string. For example,
@@ -88,7 +90,8 @@ apply_token_funs(TokenBin, Tokens) ->
             {_, Value} = lists:keyfind(Token, 1, Tokens),
             lists:foldl(
                 fun(Current, Prev) ->
-                    apply(templaterl_helpers, binary_to_existing_atom(Current, utf8), [Token, Prev])
+                    ExpressionFun = binary_to_existing_atom(Current, utf8),
+                    ?TEMPLATERL_HELPER_MODULE:ExpressionFun(Token, Prev)
                 end,
                 convert_to_binary(Value),
                 Funs)
@@ -111,7 +114,7 @@ generate_helper_module(HelperList) ->
     ok.
 
 helper_forms(HelperList) ->
-    ModuleDefinition = erl_syntax:attribute(erl_syntax:atom(module), [erl_syntax:atom(templaterl_helpers)]),
+    ModuleDefinition = erl_syntax:attribute(erl_syntax:atom(module), [erl_syntax:atom(?TEMPLATERL_HELPER_MODULE)]),
     Functions = [helper_function_syntax(HelperBody) || HelperBody <- HelperList],
 
     ExportsList = [erl_syntax:arity_qualifier(erl_syntax:atom(HelperName), erl_syntax:integer(2)) || {HelperName, _} <- Functions],
