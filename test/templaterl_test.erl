@@ -14,6 +14,9 @@ multi_token_replacement_test() ->
                                  {<<"that">>, <<"another">>}]),
     ?assertEqual(<<"replace something & another">>, Result).
 
+token_not_found_test() ->
+    ?assertException(throw, {token_not_found, <<"this">>}, templaterl:compile(<<"replace {{{this}}}">>, [])).
+
 incomplete_token_replacement_test() ->
     Result = templaterl:compile(<<"replace {{{this">>, []),
     ?assertEqual(bad_tag, Result).

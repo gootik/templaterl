@@ -60,34 +60,33 @@ register_helpers(HelperList) ->
 parse_and_replace(<<>>, _, Acc) ->
     erlang:iolist_to_binary(Acc);
 
-parse_and_replace(Bin, Tokens, Acc) ->
+parse_and_replace(Bin, TokenList, Acc) ->
     case binary:split(Bin, <<"{{{">>) of
         [Before, After] ->
-            parse_and_replace2(After, Tokens, [Acc, Before]);
+            parse_and_replace2(After, TokenList, [Acc, Before]);
         [Rest] ->
-            parse_and_replace(<<>>, Tokens, [Acc, Rest])
+            parse_and_replace(<<>>, TokenList, [Acc, Rest])
     end.
 
 parse_and_replace2(<<>>, _, _) ->
     bad_tag;
 
-parse_and_replace2(Bin, Tokens, Acc) ->
+parse_and_replace2(Bin, TokenList, Acc) ->
     case binary:split(Bin, <<"}}}">>) of
         [Token, Rest] ->
-            Value = convert_to_binary(apply_token_funs(Token, Tokens)),
-            parse_and_replace(Rest, Tokens, [Acc, Value]);
+            Value = convert_to_binary(apply_token_funs(Token, TokenList)),
+            parse_and_replace(Rest, TokenList, [Acc, Value]);
         [_Rest] ->
             bad_tag
     end.
 
-apply_token_funs(TokenBin, Tokens) ->
+apply_token_funs(TokenBin, TokenList) ->
     case binary:split(TokenBin, <<" ">>, [global, trim]) of
         [Token] ->
-            {_, Value} = lists:keyfind(Token, 1, Tokens),
-            Value;
+            token_value(Token, TokenList);
         FuncList ->
             [Token | Funs] = lists:map(fun(E) -> binary:replace(E, [<<"(">>, <<")">>], <<"">>, [global]) end, lists:reverse(FuncList)),
-            {_, Value} = lists:keyfind(Token, 1, Tokens),
+            Value = token_value(Token, TokenList),
             lists:foldl(
                 fun(Current, Prev) ->
                     ExpressionFun = binary_to_existing_atom(Current, utf8),
@@ -95,6 +94,14 @@ apply_token_funs(TokenBin, Tokens) ->
                 end,
                 convert_to_binary(Value),
                 Funs)
+    end.
+
+token_value(Token, TokenList) ->
+    case lists:keyfind(Token, 1, TokenList) of
+        {_, Value} ->
+            Value;
+        false ->
+            throw({token_not_found, Token})
     end.
 
 convert_to_binary(Term) when is_binary(Term) -> Term;
