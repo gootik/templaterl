@@ -1,7 +1,10 @@
-[![Build Status](https://travis-ci.org/shezarkhani/templaterl.svg?branch=documentation)](https://travis-ci.org/shezarkhani/templaterl)
+[![Build Status](https://travis-ci.org/shezarkhani/templaterl.svg?branch=master)](https://travis-ci.org/shezarkhani/templaterl)
 
 # templaterl
-Simple templating with customizable expressions
+Simple and fast templating with customizable expressions in Erlang
+
+Tested for:
+Erlang R17+
 
 # Usage
 Simple replacement usage:
