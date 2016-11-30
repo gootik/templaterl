@@ -16,6 +16,8 @@
 -module(templaterl).
 
 -compile(inline).
+-compile(inline_list_funcs).
+-compile({inline_size, 500}).
 
 -export([
     compile/2,
@@ -65,7 +67,7 @@ parse_and_replace(Bin, TokenList, Acc) ->
         [Before, After] ->
             parse_and_replace2(After, TokenList, [Acc, Before]);
         [Rest] ->
-            parse_and_replace(<<>>, TokenList, [Acc, Rest])
+            erlang:iolist_to_binary([Acc, Rest])
     end.
 
 parse_and_replace2(<<>>, _, _) ->
