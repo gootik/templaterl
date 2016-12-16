@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/shezarkhani/templaterl.svg?branch=master)](https://travis-ci.org/shezarkhani/templaterl)
 
-LOL_TEST
+1_LOL_TEST
 
 # templaterl
 Simple and fast templating with customizable expressions in Erlang
