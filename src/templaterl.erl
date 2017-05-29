@@ -29,12 +29,26 @@
 
 -define(TEMPLATERL_HELPER_MODULE, tempalterl_helpers).
 
+-record(internal_state, {
+    open_pattern,
+    close_pattern,
+    token_pattern,
+    function_pattern
+}).
+
 %%====================================================================
 %% API functions
 %%====================================================================
 -spec compile(bitstring(), token_list()) -> bitstring().
 compile(Bin, Tokens) when is_bitstring(Bin) andalso is_list(Tokens) ->
-    parse_and_replace(Bin, Tokens, <<>>).
+    State = #internal_state{
+        open_pattern = binary:compile_pattern(<<"{{{">>),
+        close_pattern = binary:compile_pattern(<<"}}}">>),
+        token_pattern = binary:compile_pattern(<<" ">>),
+        function_pattern = binary:compile_pattern([<<"(">>, <<")">>])
+    },
+
+    parse_and_replace(Bin, Tokens, <<>>, State).
 
 %% @doc If custom helper functions are needed they have to be registered
 %%      before calling compile. This function creates a new inline
@@ -59,35 +73,35 @@ register_helpers(HelperList) ->
 %%====================================================================
 %% Internal functions
 %%====================================================================
-parse_and_replace(<<>>, _, Acc) ->
+parse_and_replace(<<>>, _, Acc, _) ->
     erlang:iolist_to_binary(Acc);
 
-parse_and_replace(Bin, TokenList, Acc) ->
-    case binary:split(Bin, <<"{{{">>) of
+parse_and_replace(Bin, TokenList, Acc, #internal_state{open_pattern = OpenPattern} = State) ->
+    case binary:split(Bin, OpenPattern) of
         [Before, After] ->
-            parse_and_replace2(After, TokenList, [Acc, Before]);
+            parse_and_replace2(After, TokenList, [Acc, Before], State);
         [Rest] ->
             erlang:iolist_to_binary([Acc, Rest])
     end.
 
-parse_and_replace2(<<>>, _, _) ->
+parse_and_replace2(<<>>, _, _, _) ->
     bad_tag;
 
-parse_and_replace2(Bin, TokenList, Acc) ->
-    case binary:split(Bin, <<"}}}">>) of
+parse_and_replace2(Bin, TokenList, Acc, #internal_state{close_pattern = ClosePattern} = State) ->
+    case binary:split(Bin, ClosePattern) of
         [Token, Rest] ->
-            Value = convert_to_binary(apply_token_funs(Token, TokenList)),
-            parse_and_replace(Rest, TokenList, [Acc, Value]);
+            Value = convert_to_binary(apply_token_funs(Token, TokenList, State)),
+            parse_and_replace(Rest, TokenList, [Acc, Value], State);
         [_Rest] ->
             bad_tag
     end.
 
-apply_token_funs(TokenBin, TokenList) ->
-    case binary:split(TokenBin, <<" ">>, [global, trim]) of
+apply_token_funs(TokenBin, TokenList, #internal_state{function_pattern = FunctionPattern, token_pattern = TokenPattern} = _State) ->
+    case binary:split(TokenBin, TokenPattern, [global, trim]) of
         [Token] ->
             token_value(Token, TokenList);
         FuncList ->
-            [Token | Funs] = lists:map(fun(E) -> binary:replace(E, [<<"(">>, <<")">>], <<"">>, [global]) end, lists:reverse(FuncList)),
+            [Token | Funs] = lists:map(fun(E) -> binary:replace(E, FunctionPattern, <<"">>, [global]) end, lists:reverse(FuncList)),
             Value = token_value(Token, TokenList),
             lists:foldl(
                 fun(Current, Prev) ->
