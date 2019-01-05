@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/shezarkhani/templaterl.svg?branch=master)](https://travis-ci.org/shezarkhani/templaterl)
+[![Build Status](https://travis-ci.org/gootik/templaterl.svg?branch=master)](https://travis-ci.org/gootik/templaterl)
 
 # templaterl
 Simple and fast templating with customizable expressions in Erlang
